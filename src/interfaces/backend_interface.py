@@ -16,15 +16,18 @@ from pydantic import BaseModel
 from fastapi.responses import RedirectResponse
 from functools import wraps
 from src.configuration import configuration as cfg
-from src.interfaces.endpoints import Endpoints
+from src.interfaces.endpoints.lm_instances import register_endpoints as register_lm_instance_endpoints
+from src.interfaces.endpoints.tooling import register_endpoints as register_tooling_endpoints
+from src.interfaces.endpoints.agent_memory import register_endpoints as register_agent_memory_endpoints
+from src.interfaces.endpoints.agent import register_endpoints as register_agent_endpoints
 from src.control.backend_controller import BackendController
 
 
 """
 Backend control
 """
-BACKEND = FastAPI(title=cfg.PROJECT_NAME, version=cfg.PROJECT_VERSION,
-                  description=cfg.PROJECT_DESCRIPTION)
+BACKEND = FastAPI(title=cfg.BACKEND_TITLE, version=cfg.BACKEND_VERSION,
+                  description=cfg.BACKEND_DESCRIPTION)
 CONTROLLER: BackendController = BackendController()
 CONTROLLER.setup()
 
@@ -85,11 +88,6 @@ def interface_function() -> Optional[Any]:
 
 
 """
-Dataclasses
-"""
-
-
-"""
 Endpoints
 """
 
@@ -101,6 +99,16 @@ async def root() -> dict:
     :return: Redirect to SwaggerUI Docs.
     """
     return RedirectResponse(url="/docs")
+
+
+for registering_function in [register_lm_instance_endpoints,
+                             register_tooling_endpoints,
+                             register_agent_memory_endpoints,
+                             register_agent_endpoints]:
+    registering_function(backend=BACKEND,
+                         interaction_decorator=interface_function,
+                         controller=CONTROLLER,
+                         endpoint_base=cfg.ENDPOINT_BASE)
 
 
 """
