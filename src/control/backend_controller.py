@@ -43,13 +43,24 @@ class BackendController(BasicSQLAlchemyInterface):
 
         # Database infrastructure
         super().__init__(self.working_directory, self.database_uri,
-                         populate_data_instrastructure, "backend_control.", self._logger)
+                         populate_data_instrastructure, "backend.", self._logger)
         self.base = None
         self.engine = None
         self.model = None
         self.schema = None
         self.session_factory = None
         self.primary_keys = None
+
+        self.llm_pool = None
+        self._cache = None
+        
+    """
+    Setup and shutdown methods
+    """
+    def setup(self) -> None:
+        """
+        Method for running setup process.
+        """
         self._setup_database()
 
         # Knowledgebase infrastructure
@@ -76,14 +87,6 @@ class BackendController(BasicSQLAlchemyInterface):
             "active": {}
         }
 
-    """
-    Setup and shutdown methods
-    """
-    def setup(self) -> None:
-        """
-        Method for running setup process.
-        """
-        pass
 
 
     def shutdown(self) -> None:
