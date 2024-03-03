@@ -118,7 +118,7 @@ def run_backend(host: str = None, port: int = None, reload: bool = True) -> None
         cfg.BACKEND_HOST = host
     if port is not None:
         cfg.BACKEND_PORT = port
-    uvicorn.run("src.backend.backend_interface:BACKEND",
+    uvicorn.run("src.interface.backend_interface:BACKEND",
                 host=cfg.BACKEND_HOST,
                 port=int(cfg.BACKEND_PORT),
                 reload=reload)
