@@ -13,6 +13,7 @@ from typing import Optional, Any, Union
 from datetime import datetime as dt
 from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
+from fastapi.responses import RedirectResponse
 from functools import wraps
 from src.configuration import configuration as cfg
 from src.interfaces.endpoints import Endpoints
@@ -93,13 +94,13 @@ Endpoints
 """
 
 
-@BACKEND.get("/")
+@BACKEND.get("/", include_in_schema=False)
 async def root() -> dict:
     """
     Root endpoint.
-    :return: Response
+    :return: Redirect to SwaggerUI Docs.
     """
-    return {"message": f"For accessing the FastAPI interface, please access http://{cfg.BACKEND_HOST}:{cfg.BACKEND_PORT}/docs"}
+    return RedirectResponse(url="/docs")
 
 
 """
