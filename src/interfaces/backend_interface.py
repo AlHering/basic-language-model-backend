@@ -5,13 +5,6 @@
 *            (c) 2023 Alexander Hering             *
 ****************************************************
 """
-# -*- coding: utf-8 -*-
-"""
-****************************************************
-*               Medical Data Explorer              *
-*            (c) 2023 Alexander Hering             *
-****************************************************
-"""
 import os
 import uvicorn
 import traceback
