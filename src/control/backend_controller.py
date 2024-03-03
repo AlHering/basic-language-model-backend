@@ -77,8 +77,14 @@ class BackendController(BasicSQLAlchemyInterface):
         }
 
     """
-    Exit and shutdown methods
+    Setup and shutdown methods
     """
+    def setup(self) -> None:
+        """
+        Method for running setup process.
+        """
+        pass
+
 
     def shutdown(self) -> None:
         """

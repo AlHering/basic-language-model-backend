@@ -5,9 +5,18 @@
 *            (c) 2023 Alexander Hering             *
 ****************************************************
 """
+# -*- coding: utf-8 -*-
+"""
+****************************************************
+*               Medical Data Explorer              *
+*            (c) 2023 Alexander Hering             *
+****************************************************
+"""
+import os
 import uvicorn
-from enum import Enum
-from typing import Optional, Any
+import traceback
+import logging
+from typing import Optional, Any, Union
 from datetime import datetime as dt
 from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
@@ -23,7 +32,7 @@ Backend control
 BACKEND = FastAPI(title=cfg.PROJECT_NAME, version=cfg.PROJECT_VERSION,
                   description=cfg.PROJECT_DESCRIPTION)
 CONTROLLER: BackendController = BackendController()
-
+CONTROLLER.setup()
 
 
 def interface_function() -> Optional[Any]:
@@ -38,7 +47,7 @@ def interface_function() -> Optional[Any]:
         """
         Function wrapper.
         :param func: Wrapped function.
-        :return: Error message if status is incorrect, else function return.
+        :return: Process data, containing error message if process failed, else function return.
         """
         @wraps(func)
         async def inner(*args: Optional[Any], **kwargs: Optional[Any]):
@@ -48,19 +57,34 @@ def interface_function() -> Optional[Any]:
             :param kwargs: Keyword arguments.
             """
             requested = dt.now()
-            response = await func(*args, **kwargs)
+            try:
+                response = await func(*args, **kwargs)
+                response["success"] = True
+            except Exception as ex:
+                response = {
+                    "success": False,
+                    "exception": str(ex),
+                    "trace": traceback.format_exc()
+                }
             responded = dt.now()
-            CONTROLLER.post_object(
-                "log",
-                request={
+            log_data = {
+                "request": {
                     "function": func.__name__,
-                    "args": args,
-                    "kwargs": kwargs
+                    "args": str(args),
+                    "kwargs": str(kwargs)
                 },
-                response=response,
-                requested=requested,
-                responded=responded
+                "response": {
+                    key: str(response[key]) for key in response
+                },
+                "requested": requested,
+                "responded": responded
+            }
+            CONTROLLER.add_log_entry(
+                data=log_data
             )
+            logging_message = f"Backend interaction: {log_data}"
+            logging.info(logging_message) if log_data["response"]["success"] else logging.warn(
+                logging_message)
             return response
         return inner
     return wrapper
@@ -72,109 +96,18 @@ Dataclasses
 
 
 """
-BACKEND ENDPOINTS
-"""
-
-
-"""
 Endpoints
 """
 
 
-@BACKEND.get(Endpoints.GET_LLMS)
-@interface_function()
-async def get_llms() -> dict:
+@BACKEND.get("/")
+async def root() -> dict:
     """
-    Endpoint for getting LLMs.
-    :return: Response.
+    Root endpoint.
+    :return: Response
     """
-    global CONTROLLER
-    return {"llms": CONTROLLER.get_objects_by_type("modelinstance")}
+    return {"message": f"For accessing the FastAPI interface, please access http://{cfg.BACKEND_HOST}:{cfg.BACKEND_PORT}/docs"}
 
-
-@BACKEND.get(Endpoints.GET_KBS)
-@interface_function()
-async def get_kbs() -> dict:
-    """
-    Endpoint for getting KBs.
-    :return: Response.
-    """
-    global CONTROLLER
-    return {"kbs": CONTROLLER.get_objects_by_type("knowledgebase")}
-
-
-@BACKEND.post(Endpoints.CREATE_KB)
-@interface_function()
-async def post_kb(uuid: str) -> str:
-    """
-    Method for creating knowledgebase.
-    :param uuid: Knowledgebase uuid.
-    :return: Response.
-    """
-    global CONTROLLER
-    kb_id = CONTROLLER.post_object("knowledgebase")
-    CONTROLLER.register_knowledgebase(kb_id=kb_id)
-    return {"kb_id": kb_id}
-
-
-@BACKEND.delete(Endpoints.DELETE_KB)
-@interface_function()
-async def delete_kb(kb_id: int) -> dict:
-    """
-    Endpoint for deleting KBs.
-    :param kb_id: int: Knowledgebase ID.
-    :return: Response.
-    """
-    global CONTROLLER
-    CONTROLLER.delete_object("knowledgebase", kb_id)
-    CONTROLLER.wipe_knowledgebase(str(kb_id))
-    return {"kb_id": kb_id}
-
-
-@BACKEND.post(Endpoints.UPLOAD_DOCUMENT)
-@interface_function()
-async def upload_document(kb_id: int, document_content: str, document_metadata: dict = None) -> dict:
-    """
-    Endpoint for uploading a document.
-    :param kb_id: int: KB ID.
-    :param document_content: Document content.
-    :param document_metadata: Document metadata.
-    :return: Response.
-    """
-    global CONTROLLER
-    document_id = CONTROLLER.embed_document(
-        kb_id, document_content, document_metadata)
-    return {"document_id": document_id}
-
-
-@BACKEND.delete(Endpoints.DELETE_DOCUMENT)
-@interface_function()
-async def delete_document(document_id: int) -> dict:
-    """
-    Endpoint for deleting document.
-    :param document_id: Document ID.
-    :return: Response.
-    """
-    global CONTROLLER
-    document_id = CONTROLLER.delete_document_embeddings(document_id)
-    return {"document_id": document_id}
-
-
-@BACKEND.post(Endpoints.POST_QUERY)
-@interface_function()
-async def post_qa_query(llm_id: int, kb_id: int, query: str, include_sources: bool = True) -> dict:
-    """
-    Endpoint for posting document qa query.
-        :param llm_id: LLM ID.
-        :param kb_id: Knowledgebase ID.
-        :param query: Query.
-        :param include_sources: Flag declaring, whether to include sources.
-        :return: Response.
-        """
-    global CONTROLLER
-    response = CONTROLLER.forward_document_qa(
-        llm_id, kb_id, query, include_sources)
-    return {"response": response}
 
 """
 Backend runner
@@ -188,11 +121,14 @@ def run_backend(host: str = None, port: int = None, reload: bool = True) -> None
     :param port: Server port. Defaults to None in which case either environment variable "BACKEND_PORT" is set or 7861.
     :param reload: Reload flag for server. Defaults to True.
     """
-    uvicorn.run("src.interfaces.backend_interface:BACKEND",
-                host="127.0.0.1" if host is None else host,
-                port=int(
-                    cfg.ENV.get("BACKEND_PORT", 7861) if port is None else port),
-                reload=False)
+    if host is not None:
+        cfg.BACKEND_HOST = host
+    if port is not None:
+        cfg.BACKEND_PORT = port
+    uvicorn.run("src.backend.backend_interface:BACKEND",
+                host=cfg.BACKEND_HOST,
+                port=int(cfg.BACKEND_PORT),
+                reload=reload)
 
 
 if __name__ == "__main__":
