@@ -13,7 +13,7 @@ from queue import Empty, Queue as TQueue
 from multiprocessing import Process, Queue as MPQueue, Event as mp_get_event
 from multiprocessing.synchronize import Event as MPEvent
 from threading import Thread, Event as TEvent
-from src.utility.gold.transformer_model_utility import spawn_language_model_instance
+from src.utility.gold.text_generation.language_model_abstractions import spawn_language_model_instance
 from src.utility.bronze import dictionary_utility
 
 
