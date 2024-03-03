@@ -13,14 +13,17 @@ from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
 from functools import wraps
 from src.configuration import configuration as cfg
+from src.interfaces.endpoints import Endpoints
 from src.control.backend_controller import BackendController
+
 
 """
 Backend control
 """
-BACKEND = FastAPI(title="LLM Tutor Backend", version="0.1",
-                  description="Backend for serving LLM Tutor services.")
+BACKEND = FastAPI(title=cfg.PROJECT_NAME, version=cfg.PROJECT_VERSION,
+                  description=cfg.PROJECT_DESCRIPTION)
 CONTROLLER: BackendController = BackendController()
+
 
 
 def interface_function() -> Optional[Any]:
@@ -71,30 +74,6 @@ Dataclasses
 """
 BACKEND ENDPOINTS
 """
-
-
-class Endpoints(str, Enum):
-    """
-    String-based endpoint enum class.
-    """
-    BASE = "/api/v1"
-
-    GET_LLMS = f"{BASE}/llms/"
-    GET_KBS = f"{BASE}/kbs/"
-
-    CREATE_KB = f"{BASE}/kbs/create"
-    DELETE_KB = f"{BASE}/kbs/delete/{{kb_id}}"
-
-    UPLOAD_DOCUMENT = f"{BASE}/kbs/upload/{{kb_id}}"
-    DELETE_DOCUMENT = f"{BASE}/kbs/delete_doc/{{doc_id}}"
-
-    POST_QUERY = f"{BASE}/query"
-
-    def __str__(self) -> str:
-        """
-        Getter method for a string representation.
-        """
-        return self.value
 
 
 """
