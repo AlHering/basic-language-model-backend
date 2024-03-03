@@ -7,6 +7,7 @@
 """
 import os
 
+
 """
 Base 
 """
@@ -14,32 +15,38 @@ PACKAGE_PATH = os.path.abspath(os.path.dirname(os.path.dirname(
     os.path.dirname(__file__))))
 SOURCE_PATH = os.path.join(PACKAGE_PATH, "src")
 DOCS_PATH = os.path.join(PACKAGE_PATH, "docs")
-SUBMODULE_PATH = os.path.join(SOURCE_PATH, "submodules")
 DATA_PATH = os.path.join(PACKAGE_PATH, "data")
 TEST_PATH = os.path.join(DATA_PATH, "testing")
 PLUGIN_PATH = os.path.join(SOURCE_PATH, "plugins")
-DUMP_PATH = os.path.join(DATA_PATH, "processes", "dumps")
+DUMP_PATH = os.path.join(DATA_PATH, "dumps")
 
 
 """
 Machine Learning Models
 """
-TEXTGENERATION_MODEL_PATH = os.path.join(
-    PACKAGE_PATH, "machine_learning_models", "MODELS")
-TEXTGENERATION_LORA_PATH = os.path.join(
-    PACKAGE_PATH, "machine_learning_models", "LORAS")
-EMBEDDING_MODEL_PATH = os.path.join(
-    PACKAGE_PATH, "machine_learning_models", "EMBEDDING_MODELS")
-E5_LARGE_V3_PATH = os.path.join(
-    EMBEDDING_MODEL_PATH, "intfloat_e5-large-v2")
-INSTRUCT_XL_PATH = os.path.join(
-    EMBEDDING_MODEL_PATH, "hkunlp_instructor-xl")
+MODEL_PATH = os.path.join(
+    PACKAGE_PATH, "machine_learning_models")
+TEXT_GENERATION_MODEL_PATH = os.path.join(
+    MODEL_PATH, "text_generation")
+IMAGE_GENERATION_MODEL_PATH = os.path.join(
+    MODEL_PATH, "image_generation")
+SOUND_GENERATION_MODEL_PATH = os.path.join(
+    MODEL_PATH, "sound_generation")
+
 
 """
 Backends
 """
 BACKEND_PATH = os.path.join(DATA_PATH, "backend")
-MODEL_CONTROL_FRONTEND_CACHE = os.path.join(
-    BACKEND_PATH, "model_control", "frontend_cache.json")
-MODEL_CONTROL_FRONTEND_ASSETS = os.path.join(
-    BACKEND_PATH, "model_control", "assets")
+
+
+"""
+Frontends
+"""
+FRONTEND_PATH = os.path.join(DATA_PATH, "frontend")
+FRONTEND_ASSETS = os.path.join(
+    FRONTEND_PATH, "assets")
+FRONTEND_CACHE= os.path.join(
+    FRONTEND_PATH, "cache.json")
+FRONTEND__DEFAULT_CACHE= os.path.join(
+    FRONTEND_PATH, "default_cache.json")
