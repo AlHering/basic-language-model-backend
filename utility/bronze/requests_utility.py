@@ -12,13 +12,13 @@ from . import json_utility
 import requests
 import math
 from lxml import html
-from tqdm import tqdm
 
 
 REQUEST_METHODS = {
     "GET": requests.get,
     "POST": requests.post,
     "PATCH": requests.patch,
+    "PUT": requests.put,
     "DELETE": requests.delete
 }
 
@@ -142,12 +142,19 @@ def download_web_asset(asset_url: str, output_path: str, add_extension: bool = F
     chunk_size = 1024
     local_size = 0
 
-    with tqdm.wrapattr(open(output_path, "wb"), "write",
-                       miniters=1, desc=f"Downloading '{asset_url}' ...",
-                       total=asset_size) as output_file:
-        for chunk in asset.iter_content(chunk_size=chunk_size):
-            output_file.write(chunk)
-            local_size += len(chunk)
+    try:
+        from tqdm import tqdm
+        with tqdm.wrapattr(open(output_path, "wb"), "write",
+                           miniters=1, desc=f"Downloading '{asset_url}' ...",
+                           total=asset_size) as output_file:
+            for chunk in asset.iter_content(chunk_size=chunk_size):
+                output_file.write(chunk)
+                local_size += len(chunk)
+    except ImportError:
+        with open(output_path, "wb") as output_file:
+            for chunk in asset.iter_content(chunk_size=chunk_size):
+                output_file.write(chunk)
+                local_size += len(chunk)
     if local_size != asset_size:
         raise requests.exceptions.RequestException(
             f"Downloading '{asset_url}' failed ({local_size}/{asset_size})!")

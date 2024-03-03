@@ -17,14 +17,12 @@ class BasicSQLAlchemyInterface(object):
     Class, representing a basic SQL Alchemy interface.
     """
 
-    def __init__(self, working_directory: str, database_uri: str, population_function: Any, schema: str = None, logger: Any = None) -> None:
+    def __init__(self, working_directory: str, database_uri: str, population_function: Any, logger: Any = None) -> None:
         """
         Initiation method.
         :param working_directory: Working directory.
         :param database_uri: Database URI.
         :param population_function: A function, taking an engine, schema and a dataclass dictionary (later one can be empty and is to be populated).
-        :param schema: Database schema to use.
-            Defaults to None.
         :param logger: Logger instance. 
             Defaults to None in which case separate logging is disabled.
         """
@@ -39,7 +37,7 @@ class BasicSQLAlchemyInterface(object):
         self.base = None
         self.engine = None
         self.model = None
-        self.schema = schema
+        self.schema = None
         self.session_factory = None
         self.primary_keys = None
         self._setup_database()
@@ -54,7 +52,7 @@ class BasicSQLAlchemyInterface(object):
         self.engine = sqlalchemy_utility.get_engine(self.database_uri)
 
         self.model = {}
-        self.schema = "" if self.schema is None else self.schema
+        self.schema = "backend."
 
         if self.logger is not None:
             self._logger.info(
@@ -156,6 +154,24 @@ class BasicSQLAlchemyInterface(object):
             session.commit()
             session.refresh(obj)
         return getattr(obj, self.primary_keys[object_type])
+
+    def put_object(self, object_type: str, reference_attributes: List[str] = None, **object_attributes: Optional[Any]) -> Optional[Any]:
+        """
+        Method for putting in an object.
+        :param object_type: Target object type.
+        :param reference_attributes: Reference attributes for finding already existing objects.
+            Defaults to None in which case all given attributes are checked.
+        :param object_attributes: Object attributes.
+        :return: Object ID of added object, if adding was successful.
+        """
+        if reference_attributes is None:
+            reference_attributes = list(object_attributes.keys())
+        objs = self.get_objects_by_filtermasks(object_type,
+                                               [FilterMask([[key, "==", object_attributes[key]] for key in reference_attributes])])
+        if not objs:
+            return self.post_object(object_type, **object_attributes)
+        else:
+            return self.patch_object(object_type, getattr(objs[0], self.primary_keys[object_type]), **object_attributes)
 
     def patch_object(self, object_type: str, object_id: Any, **object_attributes: Optional[Any]) -> Optional[Any]:
         """
