@@ -1,8 +1,0 @@
-<!-- Taken from https://blog.teclado.com/flashing-messages-with-flask/ and adjusted-->
-<div id="flash-container">
-    {% for category, message in get_flashed_messages(with_categories=True) %}
-  <div class="alert alert-{{category}}">{{ category }}: {{ message }}
-      <i class="fa fa-times" onclick=delete_flash(this)></i>
-  </div>
-{% endfor %}
-</div>
