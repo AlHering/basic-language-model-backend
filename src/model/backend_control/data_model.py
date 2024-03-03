@@ -43,7 +43,7 @@ def populate_data_instrastructure(engine: Engine, schema: str, model: dict) -> N
 
     class LMInstance(base):
         """
-        Config class, representing a LM instance.
+        Config class, representing a language model instance.
         """
         __tablename__ = f"{schema}lm_instance"
         __table_args__ = {
@@ -82,6 +82,41 @@ def populate_data_instrastructure(engine: Engine, schema: str, model: dict) -> N
 
         resource_requirements = Column(JSON,
                                        comment="Resource profile for validating requirements.")
+
+        created = Column(DateTime, server_default=func.now(),
+                         comment="Timestamp of creation.")
+        updated = Column(DateTime, server_default=func.now(), server_onupdate=func.now(),
+                         comment="Timestamp of last update.")
+        inactive = Column(Boolean, nullable=False, default=False,
+                          comment="Inactivity flag.")
+        
+    
+    class KBInstance(base):
+        """
+        Config class, representing a knowledgebase instance.
+        """
+        __tablename__ = f"{schema}kb_instance"
+        __table_args__ = {
+            "comment": "KB instance table.", "extend_existing": True}
+
+        id = Column(Integer, primary_key=True, unique=True, nullable=False, autoincrement=True,
+                    comment="ID of the model instance.")
+        backend = Column(String, nullable=False,
+                         comment="Backend of the knowledgebase instance.")
+        knowledgebase_path = Column(String, nullable=False,
+                            comment="Path of the knowledgebase.")
+
+        knowledgebase_parameters = Column(JSON,
+                                  comment="Parameters for knowledgebase instantiation.")
+        preprocessing_parameters = Column(JSON,
+                                      comment="Parameters for preprocessing instantiation.")
+        embedding_parameters = Column(JSON,
+                                   comment="Parameters for embedding.")
+
+        default_retrieval_method = Column(String,
+                                       comment="Default retrieval method of the knowledgebase instance.")
+        retrieval_parameters = Column(JSON,
+                                     comment="Parameters for retrieval.")
 
         created = Column(DateTime, server_default=func.now(),
                          comment="Timestamp of creation.")
@@ -223,7 +258,7 @@ def populate_data_instrastructure(engine: Engine, schema: str, model: dict) -> N
                           comment="Inactivity flag.")
         # TODO: Include AgentTools
 
-    for dataclass in [Log, LMInstance, ToolArgument, AgentTool, AgentMemory, Agent]:
+    for dataclass in [Log, LMInstance, KBInstance, ToolArgument, AgentTool, AgentMemory, Agent]:
         model[dataclass.__tablename__.replace(schema, "")] = dataclass
 
     base.metadata.create_all(bind=engine)
