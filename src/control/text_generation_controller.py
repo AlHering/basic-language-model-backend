@@ -291,7 +291,6 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         document_list = "'''" + "\n\n '''".join(
             [doc.content for doc in docs]) + "'''"
         generation_prompt = f"Answer the question '''{query}''' with the following information: \n\n {document_list}"
-
         answer = self.forward_generate(llm_id, generation_prompt)
 
         return {
