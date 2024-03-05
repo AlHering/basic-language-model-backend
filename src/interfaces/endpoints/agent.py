@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from src.interfaces.endpoints.lm_instances import LMInstance
 from src.interfaces.endpoints.agent import Agent
+from src.interfaces.endpoints.agent_memory import AgentMemory
 from src.interfaces.endpoints.tooling import AgentTool
 from src.control.backend_controller import BackendController
 
@@ -22,8 +23,7 @@ class Agent(BaseModel):
     name: str
     description: str
 
-    cache: Optional[Agent] = None
-    memory: Optional[Agent] = None
+    memory: Optional[AgentMemory] = None
 
     general_lm: LMInstance
     dedicated_planner_lm: Optional[LMInstance] = None

@@ -179,7 +179,7 @@ class AgentMemory(object):
         """
         Method for remembering something.
         This method should be used for memory model agnostic usage.
-        :param query: Recall reference.
+        :param reference: Recall reference.
         :param metadata: Metadata.
         :return: Memory contents as list of strings.
         """
@@ -236,7 +236,6 @@ class Agent(object):
     def __init__(self,
                  general_llm: LanguageModelInstance,
                  tools: List[AgentTool] = None,
-                 cache: AgentMemory = None,
                  memory: AgentMemory = None,
                  dedicated_planner_llm: LanguageModelInstance = None,
                  dedicated_actor_llm: LanguageModelInstance = None,
@@ -246,8 +245,6 @@ class Agent(object):
         :param general_llm: LanguageModelInstance for general tasks.
         :param tools: List of tools to be used by the agent.
             Defaults to None in which case no tools are used.
-        :param cache: Cache to use.
-            Defaults to None.
         :param memory: Memory to use.
             Defaults to None.
         :param dedicated_planner_llm: LanguageModelInstance for planning.
@@ -260,7 +257,7 @@ class Agent(object):
         self.general_llm = general_llm
         self.tools = tools
         self.tool_guide = self._create_tool_guide()
-        self.cache = cache
+        self.cache = None
         self.memory = memory
         self.planner_llm = self.general_llm if dedicated_planner_llm is None else dedicated_planner_llm
         self.actor_llm = self.general_llm if dedicated_actor_llm is None else dedicated_actor_llm
@@ -363,8 +360,8 @@ class Agent(object):
         """
         current_step = "STEP 1" if self.cache.get(
             -3)[0] == "general" else self.cache.get(-3)[1]
-        planner_answer: self.cache.get(-2)[1]
-        actor_answer: self.cache.get(-1)[1]
+        planner_answer = self.cache.get(-2)[1]
+        actor_answer = self.cache.get(-1)[1]
         self.cache.add("observer", *self.observer_llm.generate(
             f"""The current step is {current_step}.
             

@@ -207,9 +207,6 @@ def populate_data_instrastructure(engine: Engine, schema: str, model: dict) -> N
         description = Column(String, nullable=False,
                              comment="Description of the Agent.")
 
-        cache_id = mapped_column(
-            Integer, ForeignKey(f"{schema}agent_memory.id"))
-        cache = relationship("AgentMemory", foreign_keys=[cache_id])
         memory_id = mapped_column(
             Integer, ForeignKey(f"{schema}agent_memory.id"))
         memory = relationship("AgentMemory", foreign_keys=[memory_id])
