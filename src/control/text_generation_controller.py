@@ -128,14 +128,22 @@ class TextGenerationController(BasicSQLAlchemyInterface):
             }
             instance = self.get_object("instance", instance_id)
             llm_config = {
-                "model_path": instance.model.path,
-                "model_config": {
-                    "type": instance.type,
-                    "loader": instance.loader,
-                    "loader_kwargs": instance.loader_kwargs,
-                    "model_version": instance.model_version,
-                    "gateway": instance.gateway
-                }
+                attribute: getattr(instance, attribute) for attribute in [
+                    "backend",
+                    "model_path",
+                    "model_file",
+                    "model_parameters",
+                    "tokenizer_path",
+                    "tokenizer_parameters",
+                    "config_path",
+                    "config_parameters",
+                    "default_system_prompt",
+                    "use_history",
+                    "encoding_parameters",
+                    "generating_parameters",
+                    "decoding_parameters",
+                    "resource_requirements"
+                ]
             }
 
             self.llm_pool.prepare_llm(llm_config, instance_id)
