@@ -76,7 +76,7 @@ def interface_function() -> Optional[Any]:
                 "requested": requested,
                 "responded": responded
             }
-            CONTROLLER.add_log_entry(
+            CONTROLLER.log(
                 data=log_data
             )
             logging_message = f"Backend interaction: {log_data}"

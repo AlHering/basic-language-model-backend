@@ -66,3 +66,15 @@ class BackendController(BasicSQLAlchemyInterface):
         """
         for controller_instance in self.controllers.values():
             controller_instance.shutdown()
+
+
+    """
+    Base interaction
+    """
+    def log(self, log_data: dict) -> None:
+        """
+        Method for adding a log entry.
+        :param log_data: Log entry data.
+        """
+        self.post_object("log", **log_data)
+
