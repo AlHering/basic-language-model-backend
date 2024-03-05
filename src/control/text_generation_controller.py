@@ -11,9 +11,8 @@ from datetime import datetime as dt
 from typing import Optional, Any, List, Dict, Union
 from src.configuration import configuration as cfg
 from src.utility.gold.basic_sqlalchemy_interface import BasicSQLAlchemyInterface
-from src.utility.bronze import sqlalchemy_utility
 from src.utility.bronze.hashing_utility import hash_text_with_sha256
-from src.model.backend_control.data_model import populate_data_instrastructure
+from src.model.text_generation_control.data_model import populate_data_instrastructure
 from src.model.text_generation_control.llm_pool import ThreadedLLMPool
 from src.utility.silver import embedding_utility
 from src.utility.bronze.hashing_utility import hash_text_with_sha256
@@ -44,7 +43,7 @@ class TextGenerationController(BasicSQLAlchemyInterface):
 
         # Database infrastructure
         super().__init__(self.working_directory, self.database_uri,
-                         populate_data_instrastructure, "knowledgebase_control.", self._logger)
+                         populate_data_instrastructure, "text_generation.", self._logger)
   
         self._setup_database()
 
