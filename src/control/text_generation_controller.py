@@ -18,7 +18,7 @@ from src.model.text_generation_control.llm_pool import ThreadedLLMPool
 from src.utility.silver import embedding_utility
 from src.utility.bronze.hashing_utility import hash_text_with_sha256
 from src.utility.silver.file_system_utility import safely_create_path
-from src.utility.gold.text_generation.knowledgebase_abstractions import Knowledgebase, spawn_knowledgebase_instance
+from src.utility.gold.text_generation.knowledgebase_abstractions import Knowledgebase, Document, spawn_knowledgebase_instance
 from src.utility.gold.text_generation.language_model_abstractions import LanguageModelInstance, spawn_language_model_instance
 
 
@@ -86,7 +86,6 @@ class TextGenerationController(BasicSQLAlchemyInterface):
             cfg.PATHS.INSTRUCT_XL_PATH
         )
         self.kbs: Dict[str, Knowledgebase] = {}
-        self.llms: Dict[str, LanguageModelInstance] = {}
         self.documents = {}
 
         # LLM infrastructure
@@ -108,7 +107,7 @@ class TextGenerationController(BasicSQLAlchemyInterface):
     """
     LLM handling methods
     """ 
-    def load_instance(self, instance_id: Union[str, int]) -> Optional[str]:
+    def load_instance(self, instance_id: Union[str, int]) -> Optional[int]:
         """
         Method for loading a configured language model instance.
         :param instance_id: Instance ID.
@@ -126,7 +125,7 @@ class TextGenerationController(BasicSQLAlchemyInterface):
                 "accessed": 0,
                 "inactive": 0
             }
-            instance = self.get_object("instance", instance_id)
+            instance = self.get_object_by_id("lm_instance", int(instance_id))
             llm_config = {
                 attribute: getattr(instance, attribute) for attribute in [
                     "backend",
@@ -149,7 +148,7 @@ class TextGenerationController(BasicSQLAlchemyInterface):
             self.llm_pool.prepare_llm(llm_config, instance_id)
             self.llm_pool.start(instance_id)
             self._cache[instance_id]["started"] = dt.now()
-        return instance_id
+        return int(instance_id)
 
     def unload_instance(self, instance_id: Union[str, int]) -> Optional[str]:
         """
@@ -170,7 +169,7 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         Method for forwarding a generate request to an instance.
         :param instance_id: Instance ID.
         :param prompt: Prompt.
-        :return: Instance ID.
+        :return: Response.
         """
         instance_id = str(instance_id)
         self.load_instance(instance_id)
@@ -179,90 +178,73 @@ class TextGenerationController(BasicSQLAlchemyInterface):
     """
     Knowledgebase handling methods
     """
-
-    def embed_via_instance(self, instance_id: Union[str, int], documents: List[str]) -> List[Any]:
+    def load_knowledgebase(self, kb_id: Union[str, int]) -> int:
         """
-        Wrapper method for embedding via instance.
-        :param instance_id: LLM instance ID.
-        :param documents: List of documents to embed.
-        :return: List of embeddings.
-        """
-        embeddings = []
-        for document in documents:
-            embeddings.append(self.forward_generate(instance_id, document))
-        return embeddings
-
-    def register_knowledgebase(self, kb_id: Union[str, int], handler: str, persistant_directory: str,  metadata: dict = None, embedding_instance_id: Union[str, int] = None, implementation: str = None) -> str:
-        """
-        Method for registering knowledgebase.
+        Method for loading knowledgebase.
         :param kb_id: Knowledgebase ID.
-        :param handler: Knowledgebase handler.
-        :param persistant_directory: Knowledgebase persistant directory.
-        :param metadata: Knowledgebase metadata.
-        :param embedding_instance: Embedding instance ID.
-        :param implementation: Knowledgebase implementation.
         :return: Knowledgebase ID.
         """
         kb_id = str(kb_id)
-        embedding_instance_id = str(embedding_instance_id)
-
-        self.load_instance(embedding_instance_id)
-
-        handler_kwargs = {
-            "peristant_directory": persistant_directory,
-            "metadata": metadata,
-            "base_embedding_function": None if embedding_instance_id is None else lambda x: self.embed_via_instance(embedding_instance_id, x),
-            "implementation": implementation
-        }
-
-        self.kbs[kb_id] = {"chromadb": Knowledgebase}[handler](
-            **handler_kwargs
-        )
-        return kb_id
-
-    def create_default_knowledgebase(self, uuid: str) -> int:
-        """
-        Method for creating default knowledgebase.
-        :param uuid: UUID to locate knowledgebase under.
-        :return: Knowledgebase ID.
-        """
-        kb_id = self.post_object("knowledgebase",
-                                 persistant_directory=os.path.join(self.knowledgebase_directory, uuid))
-        kb = self.get_object_by_id("knowledgebase", kb_id)
-        self.register_knowledgebase(
-            kb.id, kb.handler, kb.persistant_directory, kb.meta_data, kb.embedding_instance_id, kb.implementation
-        )
-
-    def delete_documents(self, kb: str, document_ids: List[Any], collection: str = "base") -> None:
-        """
-        Method for deleting a document from the knowledgebase.
-        :param kb: Target knowledgebase.
-        :param document_ids: Document IDs.
-        :param collection: Collection to remove document from.
-        """
-        for document_id in document_ids:
-            self.kbs[kb].delete_document(document_id, collection)
-
-    def wipe_knowledgebase(self, target_kb: str) -> None:
-        """
-        Method for wiping a knowledgebase.
-        :param target_kb: Target knowledgebase.
-        """
-        self.kbs[target_kb].wipe_knowledgebase()
-
-    def migrate_knowledgebase(self, source_kb: str, target_kb: str) -> None:
-        """
-        Method for migrating knowledgebase.
-        :param source_kb: Source knowledgebase.
-        :param target_kb: Target knowledgebase.
-        """
-        pass
-
-    def embed_documents(self, kb: str, documents: List[str], metadatas: List[dict] = None, ids: List[str] = None, hashes: List[str] = None, collection: str = "base", compute_metadata: bool = False) -> None:
+        if kb_id not in self.kbs:
+            instance = self.get_object_by_id("kb_instance", int(kb_id))
+            kb_config = {
+                attribute: getattr(instance, attribute) for attribute in [
+                    "backend",
+                    "knowledgebase_path",
+                    "knowledgebase_parameters",
+                    "preprocessing_parameters",
+                    "embedding_parameters",
+                    "default_retrieval_method",
+                    "retrieval_parameters",
+                ]
+            }
+            self.kbs = Knowledgebase(**kb_config)
+        return int(kb_id)
+    
+    def embed_documents(
+            self,
+            target_kb_id: Union[str, int], 
+            documents: List[Document], 
+            collection: str = "base") -> None:
         """
         Method for embedding documents.
-        :param kb: Target knowledgebase.
+        :param target_kb_id: Target knowledgebase ID.
         :param documents: Documents to embed.
+        :param collection: Target collection.
+            Defaults to "base".
+        """
+        target_kb_id = str(target_kb_id)
+        if target_kb_id not in self.kbs:
+            self.load_knowledgebase(target_kb_id)
+        self.kbs[target_kb_id].embed_documents(documents=documents, collection=collection)
+
+    def embed_documents_from_file(
+            self,
+            target_kb_id: Union[str, int], 
+            file_path: str,
+            collection: str = "base") -> None:
+        """
+        Method for embedding documents from file.
+        :param target_kb_id: Target knowledgebase ID.
+        :param file_path: File path of target file.
+        :param collection: Target collection.
+            Defaults to "base".
+        """
+        self.kbs[target_kb_id].get_documents_from_file(
+            file_path=file_path,
+            embed_after_loading=True,
+            collection=collection)
+
+    def embed_document_data(self, 
+                        target_kb_id: Union[str, int], 
+                        contents: List[str], 
+                        metadatas: List[dict] = None, 
+                        hashes: List[str] = None, 
+                        collection: str = "base") -> None:
+        """
+        Method for embedding documents.
+        :param target_kb_id: Target knowledgebase ID.
+        :param contents: Document contents to embed.
         :param metadatas: Metadata entries for documents.
             Defaults to None.
         :param ids: Custom IDs to add. 
@@ -271,70 +253,44 @@ class TextGenerationController(BasicSQLAlchemyInterface):
             Defaults to None in which case hashes are computet.
         :param collection: Target collection.
             Defaults to "base".
-        :param compute_metadata: Flag for declaring, whether to compute metadata.
-            Defaults to False.
         """
-        hashes = [hash_text_with_sha256(document.page_content)
-                  for document in documents] if hashes is None else hashes
-        for doc_index, hash in enumerate(hashes):
-            if hash not in self.documents:
-                path = os.path.join(self.document_directory, f"{hash}.bin")
-                open(os.path.join(self.document_directory, f"{hash}.bin"), "wb").write(
-                    documents[doc_index].encode("utf-8"))
-                self.documents[hash] = {
-                } if metadatas is None else metadatas[doc_index]
-                self.documents[hash]["controller_library_path"] = path
-
+        hashes = [hash_text_with_sha256(content)
+                  for content in contents] if hashes is None else hashes
         if metadatas is None:
-            metadatas = [self.documents[hash] for hash in hashes]
+            metadatas = [{"hash": hash} for hash in hashes]
 
-        self.kbs[kb].embed_documents(
-            collection=collection, documents=documents, metadatas=metadatas, ids=hashes if ids is None else ids)
+        documents = [Document(id=hash, content=contents[index], metadata=metadatas[index]) for index, hash in enumerate(hashes)]
+        self.embed_documents(target_kb_id, documents, collection)
+        
+    def delete_documents(self, target_kb_id: Union[str, int], document_ids: List[Union[str, int]], collection: str = "base") -> None:
+        """
+        Method for deleting a document from the knowledgebase.
+        :param target_kb_id: Target knowledgebase ID.
+        :param document_ids: Target document IDs.
+        :param collection: Collection to remove document from.
+            Defaults to "base" collection.
+        """
+        for document_id in document_ids:
+            self.kbs[str(target_kb_id)].delete_document(document_id, collection)
+
+    def wipe_knowledgebase(self, target_kb_id: Union[str, int]) -> None:
+        """
+        Method for wiping a knowledgebase.
+        :param target_kb_id: Target knowledgebase ID.
+        """
+        self.kbs[str(target_kb_id)].wipe_knowledgebase()
+
+    def migrate_knowledgebase(self, source_kb_id: Union[str, int], target_kb_id: Union[str, int]) -> None:
+        """
+        Method for migrating knowledgebase.
+        :param source_kb: Source knowledgebase.
+        :param target_kb: Target knowledgebase.
+        """
+        pass
 
     """
-    Custom methods
+    Additional methods
     """
-
-    def embed_document(self, kb_id: Union[int, str], document_content: str, document_metadata: dict = None) -> int:
-        """
-        Method for embedding document.
-        :param kb_id: Knowledgebase ID.
-        :param document_content: Document content.
-        :param document_metadata: Document metadata.
-            Defaults to None
-        :return: Document ID.
-        """
-        kb = self.get_object_by_id("knowledgebase", kb_id)
-        doc_id = self.post_object("document", {
-            "content": document_content,
-            "knowledgebase_id": kb.id
-        })
-        document_metadata = {} if document_metadata is None else document_metadata
-        document_metadata.update({
-            "hash": hash_text_with_sha256(document_content),
-            "kb_id": kb.id,
-        })
-
-        self.kb_controller.embed_documents(
-            str(kb.id), documents=[document_content],
-            metadatas=[document_metadata],
-            ids=[str(doc_id)],
-            hashes=[document_metadata["hash"]]
-        )
-        return doc_id
-
-    def delete_document_embeddings(self, document_id: int) -> int:
-        """
-        Method for deleting document embeddings.
-        :param document_id: Document ID.
-        :return: Document ID.
-        """
-        doc = self.get_object_by_id("document", document_id)
-        self.kb_controller.delete_documents(
-            str(doc.knowledgebase_id),
-            [str(doc.id)]
-        )
-
     def forward_document_qa(self, llm_id: Union[int, str], kb_id: Union[int, str], query: str, include_sources: bool = True) -> dict:
         """
         Method for posting query.
