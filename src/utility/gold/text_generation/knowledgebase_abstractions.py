@@ -14,8 +14,6 @@ from src.utility.gold.text_generation.language_model_abstractions import Languag
 """
 Abstractions
 """
-
-
 class Document(object):
     """
     Class, representing documents.
