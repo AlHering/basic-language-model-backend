@@ -21,49 +21,42 @@ from src.utility.silver.file_system_utility import safely_create_path
 from src.utility.gold.text_generation.knowledgebase_abstractions import Knowledgebase, spawn_knowledgebase_instance
 
 
-class KnowledgebaseController(BasicSQLAlchemyInterface):
+class TextGenerationController(BasicSQLAlchemyInterface):
     """
-    Controller class for handling knowledgebase interface requests.
+    Controller class for handling text generation tasks.
     """
 
     def __init__(self, working_directory: str = None, database_uri: str = None) -> None:
         """
         Initiation method.
         :param working_directory: Working directory.
-            Defaults to folder 'processes' folder under standard backend data path.
+            Defaults to configured backend folder.
         :param database_uri: Database URI.
-            Defaults to 'backend.db' file under default data path.
+            Defaults to 'backend.db' file under configured backend folder.
         """
         # Main instance variables
         self._logger = cfg.LOGGER
         self.working_directory = cfg.PATHS.BACKEND_PATH if working_directory is None else working_directory
         if not os.path.exists(self.working_directory):
             os.makedirs(self.working_directory)
-        self.database_uri = f"sqlite:///{os.path.join(cfg.PATHS.DATA_PATH, 'backend.db')}" if database_uri is None else database_uri
+        self.database_uri = f"sqlite:///{os.path.join(cfg.PATHS.BACKEND_PATH, 'backend.db')}" if database_uri is None else database_uri
 
         # Database infrastructure
         super().__init__(self.working_directory, self.database_uri,
                          populate_data_instrastructure, "knowledgebase_control.", self._logger)
-        self.base = None
-        self.engine = None
-        self.model = None
-        self.schema = None
-        self.session_factory = None
-        self.primary_keys = None
+  
         self._setup_database()
 
         # Knowledgebase infrastructure
         self.knowledgebase_directory = os.path.join(
             self.working_directory, "knowledgebases")
-        self.document_directory = os.path.join(
-            self.working_directory, "library")
+        self.file_directory = os.path.join(
+            self.working_directory, "files")
         safely_create_path(self.knowledgebase_directory)
         safely_create_path(self.document_directory)
-        self.default_embedding_function = embedding_utility.LocalHuggingFaceEmbeddings(
-            cfg.PATHS.INSTRUCT_XL_PATH
-        )
+        self.default_embedding_function = None
         self.kbs: Dict[str, Knowledgebase] = {}
-        self.documents = {}
+        self.files = {}
         for kb in self.get_objects_by_type("knowledgebase"):
             self.register_knowledgebase(kb.id, kb.handler, kb.persinstant_directory,
                                         kb.meta_data, kb.embedding_instance_id, kb.implementation)
@@ -77,8 +70,37 @@ class KnowledgebaseController(BasicSQLAlchemyInterface):
         }
 
     """
-    Exit and shutdown methods
+    Setup and shutdown methods
     """
+    def setup(self) -> None:
+        """
+        Method for running setup process.
+        """
+        self._setup_database()
+
+        # Knowledgebase infrastructure
+        self.knowledgebase_directory = os.path.join(
+            self.working_directory, "knowledgebases")
+        self.document_directory = os.path.join(
+            self.working_directory, "library")
+        safely_create_path(self.knowledgebase_directory)
+        safely_create_path(self.document_directory)
+        self.default_embedding_function = embedding_utility.LocalHuggingFaceEmbeddings(
+            cfg.PATHS.INSTRUCT_XL_PATH
+        )
+        self.kbs: Dict[str, KnowledgeBase] = {}
+        self.documents = {}
+        for kb in self.get_objects_by_type("knowledgebase"):
+            self.register_knowledgebase(kb.id, kb.handler, kb.persinstant_directory,
+                                        kb.meta_data, kb.embedding_instance_id, kb.implementation)
+
+        # LLM infrastructure
+        self.llm_pool = ThreadedLLMPool()
+
+        # Cache
+        self._cache = {
+            "active": {}
+        }
 
     def shutdown(self) -> None:
         """
@@ -90,8 +112,7 @@ class KnowledgebaseController(BasicSQLAlchemyInterface):
 
     """
     LLM handling methods
-    """
-
+    """ 
     def load_instance(self, instance_id: Union[str, int]) -> Optional[str]:
         """
         Method for loading a configured language model instance.
