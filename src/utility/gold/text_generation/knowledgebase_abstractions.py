@@ -219,6 +219,6 @@ def spawn_knowledgebase_instance(*args: Optional[Any], **kwargs: Optional[Any]) 
     # TODO: Update interfacing and move to gold utility
     # TODO: Support ChromaDB, SQLite-VSS, FAISS, PGVector, Qdrant, Pinecone, Redis, Langchain Vector DB Zoo(?)
     try:
-        pass
+        return Knowledgebase(*args, **kwargs)
     except Exception as ex:
         return {"exception": ex, "trace": traceback.format_exc()}
