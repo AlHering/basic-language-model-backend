@@ -286,13 +286,17 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         :param include_sources: Flag declaring, whether to include sources.
         :return: Response.
         """
-        docs = self.kbs[kb_id].get_retriever(
-        ).get_relevant_documents(query=query)
+        docs = self.kbs[kb_id].retrieve_documents(query=query)
 
         document_list = "'''" + "\n\n '''".join(
-            [doc.page_content for doc in docs]) + "'''"
+            [doc.content for doc in docs]) + "'''"
         generation_prompt = f"Answer the question '''{query}''' with the following information: \n\n {document_list}"
 
-        response = self.forward_generate(llm_id, generation_prompt)
+        answer = self.forward_generate(llm_id, generation_prompt)
 
-        return response, [doc.metadata for doc in docs] if include_sources else []
+        return {
+            "answer": answer, 
+            "sources": {
+                doc.id: {"metadata": doc.metadata, "content": doc.content} 
+                for doc in docs
+            } if include_sources else {}}
