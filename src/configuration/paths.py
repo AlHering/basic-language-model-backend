@@ -16,6 +16,7 @@ PACKAGE_PATH = os.path.abspath(os.path.dirname(os.path.dirname(
 SOURCE_PATH = os.path.join(PACKAGE_PATH, "src")
 DOCS_PATH = os.path.join(PACKAGE_PATH, "docs")
 DATA_PATH = os.path.join(PACKAGE_PATH, "data")
+FILE_PATH = os.path.join(DATA_PATH, "files")
 TEST_PATH = os.path.join(DATA_PATH, "testing")
 PLUGIN_PATH = os.path.join(SOURCE_PATH, "plugins")
 DUMP_PATH = os.path.join(DATA_PATH, "dumps")

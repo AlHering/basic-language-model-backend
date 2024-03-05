@@ -21,6 +21,7 @@ from src.interfaces.endpoints.tooling import register_endpoints as register_tool
 from src.interfaces.endpoints.agent_memory import register_endpoints as register_agent_memory_endpoints
 from src.interfaces.endpoints.agent import register_endpoints as register_agent_endpoints
 from src.control.backend_controller import BackendController
+from src.utility.silver.file_system_utility import safely_create_path
 
 
 """
@@ -30,6 +31,8 @@ BACKEND = FastAPI(title=cfg.BACKEND_TITLE, version=cfg.BACKEND_VERSION,
                   description=cfg.BACKEND_DESCRIPTION)
 CONTROLLER: BackendController = BackendController()
 CONTROLLER.setup()
+for path in [cfg.PATHS.FILE_PATH]:
+    safely_create_path(path)
 
 
 def interface_function() -> Optional[Any]:
@@ -90,6 +93,14 @@ def interface_function() -> Optional[Any]:
 """
 Endpoints
 """
+for registering_function in [register_lm_instance_endpoints,
+                             register_tooling_endpoints,
+                             register_agent_memory_endpoints,
+                             register_agent_endpoints]:
+    registering_function(backend=BACKEND,
+                         interaction_decorator=interface_function,
+                         controller=CONTROLLER,
+                         endpoint_base=cfg.ENDPOINT_BASE)
 
 
 @BACKEND.get("/", include_in_schema=False)
@@ -101,14 +112,22 @@ async def root() -> dict:
     return RedirectResponse(url="/docs")
 
 
-for registering_function in [register_lm_instance_endpoints,
-                             register_tooling_endpoints,
-                             register_agent_memory_endpoints,
-                             register_agent_endpoints]:
-    registering_function(backend=BACKEND,
-                         interaction_decorator=interface_function,
-                         controller=CONTROLLER,
-                         endpoint_base=cfg.ENDPOINT_BASE)
+@BACKEND.post(f"{cfg.BACKEND_ENDPOINT_BASE}/upload")
+@interface_function()
+async def upload_file(file_name: str, file_data: UploadFile = File(...)) -> dict:
+    """
+    Endpoint for uplaoding a file.
+    :param file_name: File name.
+    :param file_data: File data.
+    :return: Response.
+    """
+    global CONTROLLER
+    upload_path = os.path.join(cfg.PATHS.FILE_PATH, file_name)
+    with open(upload_path, "wb") as output_file:
+        while contents := file_data.file.read(cfg.FILE_UPLOAD_CHUNK_SIZE):
+            output_file.write(contents)
+    file_data.file.close()
+    return {"file_path": upload_file}
 
 
 """
