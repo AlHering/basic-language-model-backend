@@ -18,7 +18,7 @@ from src.model.text_generation_control.llm_pool import ThreadedLLMPool
 from src.utility.silver import embedding_utility
 from src.utility.bronze.hashing_utility import hash_text_with_sha256
 from src.utility.silver.file_system_utility import safely_create_path
-from src.model.text_generation_control.chromadb_knowledgebase import ChromaKnowledgeBase, KnowledgeBase
+from src.utility.gold.text_generation.knowledgebase_abstractions import Knowledgebase, spawn_knowledgebase_instance
 
 
 class KnowledgebaseController(BasicSQLAlchemyInterface):
@@ -62,7 +62,7 @@ class KnowledgebaseController(BasicSQLAlchemyInterface):
         self.default_embedding_function = embedding_utility.LocalHuggingFaceEmbeddings(
             cfg.PATHS.INSTRUCT_XL_PATH
         )
-        self.kbs: Dict[str, KnowledgeBase] = {}
+        self.kbs: Dict[str, Knowledgebase] = {}
         self.documents = {}
         for kb in self.get_objects_by_type("knowledgebase"):
             self.register_knowledgebase(kb.id, kb.handler, kb.persinstant_directory,
@@ -191,7 +191,7 @@ class KnowledgebaseController(BasicSQLAlchemyInterface):
             "implementation": implementation
         }
 
-        self.kbs[kb_id] = {"chromadb": ChromaKnowledgeBase}[handler](
+        self.kbs[kb_id] = {"chromadb": Knowledgebase}[handler](
             **handler_kwargs
         )
         return kb_id
