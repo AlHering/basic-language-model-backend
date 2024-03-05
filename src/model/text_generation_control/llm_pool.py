@@ -13,21 +13,8 @@ from queue import Empty, Queue as TQueue
 from multiprocessing import Process, Queue as MPQueue, Event as mp_get_event
 from multiprocessing.synchronize import Event as MPEvent
 from threading import Thread, Event as TEvent
-from src.utility.gold.text_generation.language_model_abstractions import LanguageModelInstance, spawn_language_model_instance
+from src.utility.gold.text_generation.language_model_abstractions import LanguageModelInstance
 from src.utility.bronze import dictionary_utility
-
-
-def instantiate_language_model(llm_configuration: dict) -> LanguageModelInstance:
-    """
-    Function for instantiating a language model.
-    :param llm_configuration: Configuration to instantiate LLM.
-        Either containing an available template under the key "template" or containing valid instantiation parameters.
-    :return: Language model instance.
-    """
-    if "template" in llm_configuration:
-        return spawn_language_model_instance(llm_configuration["template"])
-    else:
-        return LanguageModelInstance(**llm_configuration)
 
 
 def run_threaded_llm(switch: TEvent, llm_configuration: dict, input_queue: TQueue, output_queue: TQueue) -> None:
@@ -39,7 +26,7 @@ def run_threaded_llm(switch: TEvent, llm_configuration: dict, input_queue: TQueu
     :param input_queue: Input queue.
     :param output_queue: Output queue.
     """
-    llm = instantiate_language_model(llm_configuration)
+    llm = LanguageModelInstance(**llm_configuration)
     while not switch.wait(0.5):
         output_queue.put(llm.generate(input_queue.get()))
 
@@ -54,7 +41,7 @@ def run_multiprocessed_llm(switch: MPEvent, llm_configuration: dict, input_queue
     :param output_queue: Output queue.
     """
     try:
-        llm = instantiate_language_model(llm_configuration)
+        llm = LanguageModelInstance(**llm_configuration)
         while not switch.wait(0.5):
             output_queue.put(llm.generate(input_queue.get()))
     except:
