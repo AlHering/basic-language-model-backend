@@ -11,7 +11,7 @@ from time import sleep
 import multiprocessing.queues
 from typing import Optional, Any
 from src.configuration import configuration as cfg
-from src.model.backend_control import llm_pool as test_llm_pool
+from src.model.language_model_control import llm_pool as test_llm_pool
 
 
 def test_spawner(model_path: str, model_config: dict) -> Optional[Any]:
