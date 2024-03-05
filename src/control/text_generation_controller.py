@@ -19,6 +19,7 @@ from src.utility.silver import embedding_utility
 from src.utility.bronze.hashing_utility import hash_text_with_sha256
 from src.utility.silver.file_system_utility import safely_create_path
 from src.utility.gold.text_generation.knowledgebase_abstractions import Knowledgebase, spawn_knowledgebase_instance
+from src.utility.gold.text_generation.language_model_abstractions import LanguageModelInstance, spawn_language_model_instance
 
 
 class TextGenerationController(BasicSQLAlchemyInterface):
@@ -56,10 +57,6 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         safely_create_path(self.document_directory)
         self.default_embedding_function = None
         self.kbs: Dict[str, Knowledgebase] = {}
-        self.files = {}
-        for kb in self.get_objects_by_type("knowledgebase"):
-            self.register_knowledgebase(kb.id, kb.handler, kb.persinstant_directory,
-                                        kb.meta_data, kb.embedding_instance_id, kb.implementation)
 
         # LLM infrastructure
         self.llm_pool = ThreadedLLMPool()
@@ -81,18 +78,16 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         # Knowledgebase infrastructure
         self.knowledgebase_directory = os.path.join(
             self.working_directory, "knowledgebases")
-        self.document_directory = os.path.join(
-            self.working_directory, "library")
+        self.file_directory = os.path.join(
+            self.working_directory, "files")
         safely_create_path(self.knowledgebase_directory)
         safely_create_path(self.document_directory)
         self.default_embedding_function = embedding_utility.LocalHuggingFaceEmbeddings(
             cfg.PATHS.INSTRUCT_XL_PATH
         )
-        self.kbs: Dict[str, KnowledgeBase] = {}
+        self.kbs: Dict[str, Knowledgebase] = {}
+        self.llms: Dict[str, LanguageModelInstance] = {}
         self.documents = {}
-        for kb in self.get_objects_by_type("knowledgebase"):
-            self.register_knowledgebase(kb.id, kb.handler, kb.persinstant_directory,
-                                        kb.meta_data, kb.embedding_instance_id, kb.implementation)
 
         # LLM infrastructure
         self.llm_pool = ThreadedLLMPool()
