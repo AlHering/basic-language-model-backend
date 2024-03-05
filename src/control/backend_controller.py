@@ -18,7 +18,6 @@ from src.model.text_generation_control.llm_pool import ThreadedLLMPool
 from src.utility.silver import embedding_utility
 from src.utility.bronze.hashing_utility import hash_text_with_sha256
 from src.utility.silver.file_system_utility import safely_create_path
-from src.model.text_generation_control.chromadb_knowledgebase import ChromaKnowledgeBase, KnowledgeBase
 
 
 class BackendController(BasicSQLAlchemyInterface):
