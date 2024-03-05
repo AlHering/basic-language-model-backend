@@ -198,7 +198,7 @@ class Knowledgebase(object):
                                 file_path: str,
                                 preprocessing_parameters: dict = None,
                                 embed_after_loading: bool = False,
-                                collection: str = "base") -> None:
+                                collection: str = "base") -> List[Document]:
         """
         Method for loading documents from a file.
         :param file_path: File path to load documents from.
