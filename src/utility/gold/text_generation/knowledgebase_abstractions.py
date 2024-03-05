@@ -20,9 +20,16 @@ class Document(object):
     """
     Class, representing documents.
     """
-    id: Union[int, str]
-    content: str
-    metadata: dict
+    def __init__(self, id: Union[int, str], content: str, metadata: dict) -> None:
+        """
+        Initiation method.
+        :param id: ID of the document.
+        :param content: Textual content of the document.
+        :param metadata: Metadata of the document.
+        """
+        self.id = id
+        self.content = content
+        self.metadata = metadata
 
 
 class EmbeddingFunction(object):
@@ -187,6 +194,23 @@ class Knowledgebase(object):
         """
         pass
 
+    def get_documents_from_file(self,
+                                file_path: str,
+                                preprocessing_parameters: dict = None,
+                                embed_after_loading: bool = False,
+                                collection: str = "base") -> None:
+        """
+        Method for loading documents from a file.
+        :param file_path: File path to load documents from.
+        :param preprocessing_parameters: Preprocessing parameters.
+            Defaults to None in which case the default preprocessing parameters are used.
+        :param embed_after_loading: Flag for declaring whether to directly embed the loaded documents.
+            Defaults to False.
+        :param collection: Collection to embed to. Only is relevant if embed_after_loading is set to True.
+            Defaults to "base".
+        """
+        pass
+
     def update_document(self, document: Document) -> None:
         """
         Abstract method for deleting a document from the knowledgebase.
@@ -194,7 +218,8 @@ class Knowledgebase(object):
         """
         pass
 
-    def delete_document(self, document_id: Union[int, str], 
+    def delete_document(self, 
+                        document_id: Union[int, str], 
                         collection: str = "base") -> None:
         """
         Abstract method for deleting a document from the knowledgebase.
