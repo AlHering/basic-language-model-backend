@@ -6,7 +6,6 @@
 *            (c) 2023 Alexander Hering             *
 ****************************************************
 """
-from dataclasses import dataclass
 from typing import List, Any, Callable, Optional, Type, Union
 from uuid import uuid4
 from datetime import datetime as dt
@@ -102,29 +101,38 @@ class AgentTool(object):
         return self.func(**{arg.name: arg.value for arg in self.arguments})
 
 
-@dataclass
 class AgentMemoryEntry(object):
     """
     Class, representing an agent's memory entry.
-
-    :attr id: The ID of the entry.
-    :attr timestamp: Timestamp of creation.
-    :attr content: Textual content of the memory.
-    :attr embedding: Embedded content.
-    :attr importance: Memory importance. The higher the number, the more important the memory.
-    :attr layer: Memorization layer. Level one means an atomic memory. This number is incremented with
-        every iteration of memory condensation (concatenation and summarization of multiple entries).
-    :attr metadata: Metadata for additional storage. Examples would be agents in a multi-agent-system or
-        entity relationships.
     """
-    id: Union[int, str]
-    timestamp: dt
-    content: str
-    embedding: List[float]
-    importance: int = -1
-    layer: int = 0
-    metadata: dict = {}
-
+    def __init__(
+            self,
+            id: Union[int, str],
+            timestamp: dt,
+            content: str,
+            embedding: List[float],
+            importance: int = -1,
+            layer: int = 0,
+            metadata: dict = {}) -> None:
+        """
+        Initiation method.
+        :param id: The ID of the entry.
+        :param timestamp: Timestamp of creation.
+        :param content: Textual content of the memory.
+        :param embedding: Embedded content.
+        :param importance: Memory importance. The higher the number, the more important the memory.
+        :param layer: Memorization layer. Level one means an atomic memory. This number is incremented with
+            every iteration of memory condensation (concatenation and summarization of multiple entries).
+        :param metadata: Metadata for additional storage. Examples would be agents in a multi-agent-system or
+            entity relationships.
+        """
+        self.id = id
+        self.timestamp = timestamp
+        self.content = content
+        self.embedding = embedding
+        self.importance = importance
+        self.layer = layer
+        self.metadata = metadata
 
 
 class AgentMemory(object):
