@@ -166,6 +166,27 @@ class Knowledgebase(object):
         """
         pass
 
+    def store_embeddings(self,
+                        embeddings: List[list], 
+                        metadatas: List[list] = None, 
+                        ids: List[Union[int, str]] = None, 
+                        embedding_paramters: dict = None, 
+                        collection: str = "base") -> None:
+        """
+        Method for storing embeddings.
+        :param embeddings: Embeddings to store.
+        :param metadatas: Metadata entries to attach to embedding of the same index.
+            Defaults to None.
+        :param ids: IDs to store the embedding of the same index under.
+            Defaults to None.
+        :param embeddings: Documents to embed.
+        :param embedding_paramters: Embedding parameters.
+            Defaults to None.
+        :param collection: Collection to embed to.
+            Defaults to "base".
+        """
+        pass
+
     def update_document(self, document: Document) -> None:
         """
         Abstract method for deleting a document from the knowledgebase.
@@ -191,13 +212,13 @@ class Knowledgebase(object):
 
     def write_to_storage(self) -> None:
         """
-        Abstract method for writing knowledgebase to storage.
+        Abstract method for writing knowledgebase to persistant storage.
         """
         pass
 
     def read_from_storage(self) -> None:
         """
-        Abstract method for reading knowledgebase from storage.
+        Abstract method for reading knowledgebase from persistant storage.
         """
         pass
 
