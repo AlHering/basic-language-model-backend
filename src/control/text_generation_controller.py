@@ -44,26 +44,12 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         # Database infrastructure
         super().__init__(self.working_directory, self.database_uri,
                          populate_data_instrastructure, "text_generation.", self._logger)
-  
-        self._setup_database()
-
-        # Knowledgebase infrastructure
-        self.knowledgebase_directory = os.path.join(
-            self.working_directory, "knowledgebases")
-        self.file_directory = os.path.join(
-            self.working_directory, "files")
-        safely_create_path(self.knowledgebase_directory)
-        safely_create_path(self.document_directory)
-        self.default_embedding_function = None
-        self.kbs: Dict[str, Knowledgebase] = {}
 
         # LLM infrastructure
-        self.llm_pool = ThreadedLLMPool()
+        self.llm_pool = None
 
         # Cache
-        self._cache = {
-            "active": {}
-        }
+        self._cache = None
 
     """
     Setup and shutdown methods
@@ -72,18 +58,13 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         """
         Method for running setup process.
         """
-        self._setup_database()
-
         # Knowledgebase infrastructure
         self.knowledgebase_directory = os.path.join(
             self.working_directory, "knowledgebases")
         self.file_directory = os.path.join(
             self.working_directory, "files")
         safely_create_path(self.knowledgebase_directory)
-        safely_create_path(self.document_directory)
-        self.default_embedding_function = embedding_utility.LocalHuggingFaceEmbeddings(
-            cfg.PATHS.INSTRUCT_XL_PATH
-        )
+        safely_create_path(self.file_directory)
         self.kbs: Dict[str, Knowledgebase] = {}
         self.documents = {}
 

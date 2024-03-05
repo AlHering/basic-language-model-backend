@@ -19,7 +19,7 @@ def populate_data_instrastructure(engine: Engine, schema: str, model: dict) -> N
     :param model: Model dictionary for holding data classes.
     """
     schema = str(schema)
-    if not schema.endswith("."):
+    if schema and not schema.endswith("."):
         schema += "."
     base = declarative_base()
 
