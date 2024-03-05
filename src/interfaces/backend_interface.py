@@ -127,7 +127,7 @@ async def upload_file(file_name: str, file_data: UploadFile = File(...)) -> dict
         while contents := file_data.file.read(cfg.FILE_UPLOAD_CHUNK_SIZE):
             output_file.write(contents)
     file_data.file.close()
-    return {"file_path": upload_file}
+    return {"file_path": upload_path}
 
 
 """
