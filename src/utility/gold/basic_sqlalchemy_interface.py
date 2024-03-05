@@ -52,9 +52,6 @@ class BasicSQLAlchemyInterface(object):
         self.engine = sqlalchemy_utility.get_engine(self.database_uri)
 
         self.model = {}
-        if self.schema and not  self.schema.endswith("."):
-            self.schema += "."
-
         if self.logger is not None:
             self._logger.info(
                 f"Generating model tables for website with schema '{self.schema}'")
