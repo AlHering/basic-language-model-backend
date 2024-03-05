@@ -15,8 +15,6 @@ from .language_model_instantiation import load_ctransformers_model, load_transfo
 """
 Abstractions
 """
-
-
 class LanguageModelInstance(object):
     """
     Language model class.
@@ -207,11 +205,17 @@ class LanguageModelInstance(object):
 
 
 """
+Templates
+"""
+TEMPLATES = {
+
+}
+
+
+"""
 Interfacing
 """
-
-
-def spawn_language_model_instance(*args: Optional[Any], **kwargs: Optional[Any]) -> Union[LanguageModelInstance, dict]:
+def spawn_language_model_instance(template: str) -> Union[LanguageModelInstance, dict]:
     """
     Function for spawning language model instance based on configuration arguments.
     :param args: Arbitrary initiation arguments.
@@ -219,6 +223,6 @@ def spawn_language_model_instance(*args: Optional[Any], **kwargs: Optional[Any])
     :return: Language model instance if configuration was successful else an error report.
     """
     try:
-        return LanguageModelInstance(*args, **kwargs)
+        return LanguageModelInstance(**TEMPLATES[template])
     except Exception as ex:
         return {"exception": ex, "trace": traceback.format_exc()}
