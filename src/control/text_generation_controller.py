@@ -230,7 +230,7 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         :param collection: Target collection.
             Defaults to "base".
         """
-        self.kbs[target_kb_id].get_documents_from_file(
+        self.kbs[target_kb_id].load_documents_from_file(
             file_path=file_path,
             embed_after_loading=True,
             collection=collection)
@@ -280,13 +280,19 @@ class TextGenerationController(BasicSQLAlchemyInterface):
         """
         self.kbs[str(target_kb_id)].wipe_knowledgebase()
 
-    def migrate_knowledgebase(self, source_kb_id: Union[str, int], target_kb_id: Union[str, int]) -> None:
+    def migrate_knowledgebase(self, 
+                              source_kb_id: Union[str, int], 
+                              target_kb_id: Union[str, int], 
+                              collection: str = "base") -> None:
         """
         Method for migrating knowledgebase.
         :param source_kb: Source knowledgebase.
         :param target_kb: Target knowledgebase.
+        :param collection: Collection to migrate.
+            Defaults to "base" collection.
         """
-        pass
+        documents = self.kbs[str(source_kb_id)].get_all_documents(collection=collection)
+        self.kbs[str(source_kb_id)].embed_documents(documents=documents, collection=collection)
 
     """
     Additional methods

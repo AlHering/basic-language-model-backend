@@ -194,7 +194,7 @@ class Knowledgebase(object):
         """
         pass
 
-    def get_documents_from_file(self,
+    def load_documents_from_file(self,
                                 file_path: str,
                                 preprocessing_parameters: dict = None,
                                 embed_after_loading: bool = False,
@@ -226,6 +226,16 @@ class Knowledgebase(object):
         :param document_id: Document ID.
         :param collection: Collection to embed to.
             Defaults to "base".
+        """
+        pass
+
+    def get_all_documents(self,
+                         collection: str = "base") -> List[Document]:
+        """
+        Method for retrieving all documents.
+        :param collection: Collection to retrieve documents from.
+            Defaults to "base".
+        :return: Retrieved documents.
         """
         pass
 
