@@ -217,9 +217,8 @@ Interfacing
 """
 def spawn_language_model_instance(template: str) -> Union[LanguageModelInstance, dict]:
     """
-    Function for spawning language model instance based on configuration arguments.
-    :param args: Arbitrary initiation arguments.
-    :param kwargs: Arbitrary initiation keyword arguments.
+    Function for spawning language model instance based on configuration templates.
+    :param template: Instance template.
     :return: Language model instance if configuration was successful else an error report.
     """
     try:

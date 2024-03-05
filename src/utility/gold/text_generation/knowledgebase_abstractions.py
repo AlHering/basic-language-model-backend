@@ -202,23 +202,27 @@ class Knowledgebase(object):
         pass
 
 
+"""
+Templates
+"""
+TEMPLATES = {
+
+}
+
 
 """
 Interfacing
 """
-
-
-def spawn_knowledgebase_instance(*args: Optional[Any], **kwargs: Optional[Any]) -> Union[Any, dict]:
+def spawn_knowledgebase_instance(template: str) -> Union[Any, dict]:
     """
-    Function for spawning knowledgebase instances based on configuration arguments.
-    :param args: Arbitrary initiation arguments.
-    :param kwargs: Arbitrary initiation keyword arguments.
-    :return: Language model instance if configuration was successful else an error report.
+    Function for spawning knowledgebase instances based on configuration templates.
+    :param template: Instance template.
+    :return: Knowledgebase instance if configuration was successful else an error report.
     """
     # TODO: Research common parameter pattern for popular knowledgebase backends
     # TODO: Update interfacing and move to gold utility
     # TODO: Support ChromaDB, SQLite-VSS, FAISS, PGVector, Qdrant, Pinecone, Redis, Langchain Vector DB Zoo(?)
     try:
-        return Knowledgebase(*args, **kwargs)
+        return Knowledgebase(**TEMPLATES[template])
     except Exception as ex:
         return {"exception": ex, "trace": traceback.format_exc()}
