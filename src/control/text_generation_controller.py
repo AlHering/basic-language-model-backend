@@ -277,16 +277,23 @@ class TextGenerationController(BasicSQLAlchemyInterface):
     """
     Additional methods
     """
-    def forward_document_qa(self, llm_id: Union[int, str], kb_id: Union[int, str], query: str, include_sources: bool = True) -> dict:
+    def forward_document_qa(self, 
+                            llm_id: Union[int, str], 
+                            kb_id: Union[int, str], 
+                            query: str, 
+                            collection: str = "base", 
+                            include_sources: bool = True) -> dict:
         """
         Method for posting query.
         :param llm_id: LLM ID.
         :param kb_id: Knowledgebase ID.
         :param query: Query.
+        :param collection: Collection to retrieve from.
+            Defaults to "base" collection.
         :param include_sources: Flag declaring, whether to include sources.
         :return: Response.
         """
-        docs = self.kbs[kb_id].retrieve_documents(query=query)
+        docs = self.kbs[kb_id].retrieve_documents(query=query, collection=collection)
 
         document_list = "'''" + "\n\n '''".join(
             [doc.content for doc in docs]) + "'''"
