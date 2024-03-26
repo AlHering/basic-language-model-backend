@@ -172,3 +172,4 @@ machine_learning_models/EMBEDDING_MODELS/*
 !machine_learning_models/LORAS/mount ML LoRAs here.txt
 !machine_learning_models/MODELS/mount ML models here.txt
 !machine_learning_models/EMBEDDING_MODELS/mount ML models for embedding here.txt
+!src/utility/data/media_types.json
