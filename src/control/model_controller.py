@@ -20,7 +20,6 @@ class ModelController(BasicSQLAlchemyInterface):
     A Model Controller manages Model Handlers, which use API Wrappers to provide
     model services for collecting metadata and downloading assets.
     """
-
     def __init__(self, working_directory: str = None, database_uri: str = None, handlers: Dict[str, GenericModelHandler] = None) -> None:
         """
         Initiation method.
