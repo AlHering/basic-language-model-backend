@@ -25,7 +25,7 @@ class TextGenerationController(BasicSQLAlchemyInterface):
     """
     Controller class for handling text generation tasks.
     """
-
+    
     def __init__(self, working_directory: str = None, database_uri: str = None) -> None:
         """
         Initiation method.
