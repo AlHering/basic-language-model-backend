@@ -20,7 +20,6 @@ class PluginController(object):
     """
     Class, representing Plugin Controller objects.
     """
-
     def __init__(self, plugin_class_dictionary: dict, plugin_folders: List[str] = None, security_hashes: dict = None,
                  supported_types: List[str] = None, ignore_failed_imports: bool = True) -> None:
         """
