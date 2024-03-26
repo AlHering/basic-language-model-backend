@@ -8,7 +8,7 @@
 from typing import Any, Optional, List
 from src.utility.bronze import sqlalchemy_utility
 from datetime import datetime as dt
-from src.model.model_control.data_model import populate_data_instrastructure
+from src.model.model_control.data_model2 import populate_data_instrastructure
 from src.utility.gold.filter_mask import FilterMask
 from src.configuration import configuration as cfg
 
@@ -140,6 +140,24 @@ class ModelDatabase(object):
             session.commit()
             session.refresh(obj)
         return getattr(obj, self.primary_keys[object_type])
+
+    def put_object(self, object_type: str, reference_attributes: List[str] = None, **object_attributes: Optional[Any]) -> Optional[Any]:
+        """
+        Method for putting in an object.
+        :param object_type: Target object type.
+        :param reference_attributes: Reference attributes for finding already existing objects.
+            Defaults to None in which case all given attributes are checked.
+        :param object_attributes: Object attributes.
+        :return: Object ID of added object, if adding was successful.
+        """
+        if reference_attributes is None:
+            reference_attributes = list(object_attributes.keys())
+        objs = self.get_objects_by_filtermasks(object_type,
+                                               [FilterMask([[key, "==", object_attributes[key]] for key in reference_attributes])])
+        if not objs:
+            return self.post_object(object_type, **object_attributes)
+        else:
+            return self.patch_object(object_type, getattr(objs[0], self.primary_keys[object_type]), **object_attributes)
 
     def patch_object(self, object_type: str, object_id: Any, **object_attributes: Optional[Any]) -> Optional[Any]:
         """
