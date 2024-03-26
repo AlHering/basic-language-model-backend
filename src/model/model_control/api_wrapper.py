@@ -198,7 +198,7 @@ class CivitaiAPIWrapper(AbstractAPIWrapper):
         self.api_base_url = f"{self.base_url}api/v1"
         self.modelversion_api_endpoint = f"{self.api_base_url}/model-versions/"
         self.modelversion_by_hash_endpoint = f"{self.modelversion_api_endpoint}/by-hash/"
-        self.model_api_endpoint = f"{self.api_base_url}/models/"
+        self.model_api_endpoint = f"{self.api_base_url}/models"
         self.wait = 1.5
 
     def get_source_name(self) -> str:
@@ -236,6 +236,7 @@ class CivitaiAPIWrapper(AbstractAPIWrapper):
             'callback': A callback for adding batches of scraping results while scraping process runs.
                 If a callback for adding results is given, this method will return an empty list.
             'model': A target model for constraining target model versions to be scraped.
+            'start_url': A URL to start at.
         :return: List of entries of given target type.
         """
         result = []
@@ -244,7 +245,7 @@ class CivitaiAPIWrapper(AbstractAPIWrapper):
             def callback(x: Any) -> None: result.extend(
                 x) if isinstance(x, list) else result.append(x)
         if target_type == "model":
-            self.collect_models_via_api(callback)
+            self.collect_models_via_api(callback, kwargs.get("start_url"))
         elif target_type == "modelversion":
             target_model = kwargs.get("model")
             if target_model is not None:
@@ -261,12 +262,13 @@ class CivitaiAPIWrapper(AbstractAPIWrapper):
                 self.collect_models_via_api(modelversion_callback_gateway)
         return result
 
-    def collect_models_via_api(self, callback: Any) -> None:
+    def collect_models_via_api(self, callback: Any, start_url: str = None) -> None:
         """
         Method for collecting model data via api.
         :param callback: Callback to call with collected model data batches.
+        :param start_url: Starting URL. Defaults to None.
         """
-        next_url = self.model_api_endpoint
+        next_url = f"{self.model_api_endpoint}?page=1&limit=100" if start_url is None else start_url
         while next_url:
             sleep(self.wait)
             data = self.safely_fetch_api_data(next_url, current_try=1)
