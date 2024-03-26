@@ -20,7 +20,7 @@ class BackendController(BasicSQLAlchemyInterface):
     """
     Controller class for handling backend interface requests.
     """
-
+    
     def __init__(self, working_directory: str = None, database_uri: str = None) -> None:
         """
         Initiation method.
@@ -77,4 +77,9 @@ class BackendController(BasicSQLAlchemyInterface):
         :param log_data: Log entry data.
         """
         self.post_object("log", **log_data)
+
+    """
+    Orchestration interaction
+    """
+
 
