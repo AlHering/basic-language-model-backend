@@ -33,12 +33,13 @@ if __name__ == "__main__":
         """
         for entry in model_entries:
             try:
-                db.put_object("model_entry", ["url"], **{
-                    "url": f"https://civitai.com/api/v1/models/{entry['id']}",
-                    "source": "civitai.com",
-                    "meta_data": entry
-                })
+                if entry:
+                    db.put_object("model_entry", ["url"], **{
+                        "url": f"https://civitai.com/api/v1/models/{entry['id']}",
+                        "source": "civitai.com",
+                        "meta_data": entry
+                    })
             except sqlalchemy.exc.IntegrityError: 
                 pass
     wrapper = CivitaiAPIWrapper()
-    wrapper.scrape_available_targets("model", callback=callback, start_url="https://civitai.com/api/v1/models?limit=100&page=190")
+    wrapper.scrape_available_targets("model", callback=callback)

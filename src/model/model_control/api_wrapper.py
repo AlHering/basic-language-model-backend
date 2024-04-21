@@ -268,7 +268,7 @@ class CivitaiAPIWrapper(AbstractAPIWrapper):
         :param callback: Callback to call with collected model data batches.
         :param start_url: Starting URL. Defaults to None.
         """
-        next_url = f"{self.model_api_endpoint}?page=1&limit=100" if start_url is None else start_url
+        next_url = f"{self.model_api_endpoint}?limit=100" if start_url is None else start_url
         while next_url:
             sleep(self.wait)
             data = self.safely_fetch_api_data(next_url, current_try=1)
